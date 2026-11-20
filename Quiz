@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IACP True or False Quiz</title>
+<style>
+:root {
+  --bg: #f4f6fb; --card: #ffffff; --ink: #1d2433; --muted: #5a6275; --navy: #1f2a6b;
+  --ok: #1e7b4a; --okbg: #e6f4ec; --bad: #b3261e; --badbg: #fbe9e7; --line: #d7dce8;
+  --sel: #1f2a6b; --selink: #ffffff;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121726; --card: #1b2236; --ink: #eef1f8; --muted: #a9b2c7; --navy: #8fa2ff;
+    --ok: #5fd39a; --okbg: #17332a; --bad: #ff8a80; --badbg: #3a1f1e; --line: #33405f;
+    --sel: #8fa2ff; --selink: #121726;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; line-height: 1.45;
+}
+.wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { color: var(--navy); margin: 0 0 4px; font-size: 26px; }
+h2 { color: var(--navy); font-size: 20px; margin: 0 0 12px; }
+.sub { color: var(--muted); margin: 0 0 16px; }
+.dir { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 0 0 14px; }
+.num { color: var(--navy); font-weight: 700; font-size: 14px; letter-spacing: .02em; text-transform: uppercase; }
+.stmt { font-weight: 700; font-size: 18px; margin: 6px 0 12px; }
+.choices { display: flex; gap: 10px; flex-wrap: wrap; }
+.choice {
+  appearance: none; border: 2px solid var(--line); background: transparent; color: var(--ink);
+  border-radius: 999px; padding: 8px 18px; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; min-width: 110px;
+}
+.choice[aria-pressed="true"] { background: var(--sel); border-color: var(--sel); color: var(--selink); }
+label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
+input[type="text"], textarea {
+  width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+textarea { min-height: 64px; resize: vertical; }
+input:disabled, textarea:disabled, .choice:disabled { opacity: .6; cursor: not-allowed; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+.btn { font: inherit; font-weight: 700; border-radius: 10px; padding: 12px 20px; border: 0; cursor: pointer; background: var(--navy); color: #fff; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.secondary { background: transparent; color: var(--navy); border: 2px solid var(--navy); }
+.status { font-size: 16px; font-weight: 600; margin: 8px 0; min-height: 24px; color: var(--navy); }
+.status.bad { color: var(--bad); }
+.score-box { background: var(--okbg); color: var(--ok); border-radius: 12px; padding: 14px 16px; font-size: 20px; font-weight: 700; margin: 10px 0; }
+.teacher-link { margin-top: 36px; font-size: 13px; color: var(--muted); }
+.teacher { margin-top: 24px; border-top: 2px solid var(--line); padding-top: 18px; }
+.trow { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 0 0 10px; background: var(--card); }
+.trow summary { cursor: pointer; font-weight: 700; }
+.trow .meta { color: var(--muted); font-size: 14px; margin: 4px 0; }
+.qline { font-size: 14px; margin: 8px 0; }
+.qline .ok { color: var(--ok); font-weight: 700; }
+.qline .bad { color: var(--bad); font-weight: 700; }
+.qline .muted { color: var(--muted); display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>IACP True or False Quiz</h1>
+    <p class="sub">Group 3 | International Association of Chiefs of Police</p>
+  </header>
+
+  <section class="dir">
+    <strong>Directions:</strong> Decide whether each statement is TRUE or FALSE. If TRUE, explain why. If FALSE, state the correct answer and explain why it is false. Use only the information in this presentation, not your own understanding or opinion. Write the slide number(s) where your answer can be found.
+  </section>
+
+  <div class="card">
+    <label for="name">Your name (you can take this quiz only once)</label>
+    <input type="text" id="name" autocomplete="name" maxlength="80">
+  </div>
+
+  <div id="quiz"></div>
+
+  <div class="actions">
+    <button class="btn" id="submit" type="button">Submit my answers</button>
+    <button class="btn secondary" id="check" type="button" hidden>Check my score</button>
+  </div>
+  <div id="status" class="status" aria-live="polite"></div>
+  <div id="score" class="score-box" hidden></div>
+
+  <div class="teacher-link">
+    Teacher? <button class="btn secondary" id="tsignin" type="button" style="padding:6px 12px;font-size:13px">Teacher sign in</button>
+  </div>
+
+  <section id="teacher" class="teacher" hidden>
+    <h2>Teacher view</h2>
+
+    <div class="card">
+      <label for="keytext">Answer key (paste JSON: 10 items, each with "correct" true or false and "ans")</label>
+      <textarea id="keytext" rows="6" placeholder='[{"correct": false, "ans": "..."}, ...]'></textarea>
+      <div class="actions"><button class="btn secondary" id="savekey" type="button">Save answer key</button></div>
+      <div id="keystatus" class="status"></div>
+    </div>
+
+    <div class="actions"><button class="btn" id="grade" type="button">Load and grade submissions</button></div>
+    <div id="teacher-list"></div>
+  </section>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+// 1. Paste your Firebase web app config here (Firebase console > Project settings > Your apps).
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// 2. Teacher Gmail address. It must match the address in firestore.rules.
+const TEACHER_EMAIL = "your-email@gmail.com";
+
+const QUESTIONS = [
+  "Is IACP headquartered in Lyon, France?",
+  "Was IACP founded in 1893 in Chicago, Illinois?",
+  "Is IACP a government police agency that makes arrests?",
+  "Was IACP originally named the National Chiefs of Police Union?",
+  "Does IACP have more than 30,000 members in more than 150 countries?",
+  "Did IACP release a model policy on body-worn cameras in 2014?",
+  "Can IACP order chiefs to adopt its guidance?",
+  "Has IACP’s annual conference been held every year since 1893, without exception?",
+  "Is “Serving the Leaders of Today, Developing the Leaders of Tomorrow” IACP’s vision?",
+  "Does IACP have a Midsize Agencies Division and a State and Provincial Police Division?"
+];
+
+const DONE_KEY = "iacp_quiz_done_v1";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: "select_account" });
+
+const answers = QUESTIONS.map(() => ({ choice: null, explain: "", slides: "" }));
+let submitted = false;
+let myId = null;
+let myName = "";
+let isTeacher = false;
+
+const $ = (id) => document.getElementById(id);
+const quizEl = $("quiz"), nameEl = $("name"), statusEl = $("status"), submitBtn = $("submit");
+const checkBtn = $("check"), scoreEl = $("score");
+
+// Turns a name into a document id: "José  dela Cruz" -> "jose_dela_cruz". The same name always gives the same id.
+function nameId(name) {
+  return name.trim().toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+function readDone() {
+  try { return JSON.parse(localStorage.getItem(DONE_KEY) || "null"); } catch (e) { return null; }
+}
+function writeDone(v) {
+  try { localStorage.setItem(DONE_KEY, JSON.stringify(v)); } catch (e) { /* storage unavailable */ }
+}
+
+function setStatus(text, bad) {
+  statusEl.textContent = text;
+  statusEl.className = "status" + (bad ? " bad" : "");
+}
+
+function render() {
+  quizEl.innerHTML = "";
+  QUESTIONS.forEach((text, i) => {
+    const card = document.createElement("article");
+    card.className = "card";
+
+    const num = document.createElement("div");
+    num.className = "num";
+    num.textContent = "Question " + (i + 1) + " · True or False";
+    card.appendChild(num);
+
+    const stmt = document.createElement("div");
+    stmt.className = "stmt";
+    stmt.textContent = text;
+    card.appendChild(stmt);
+
+    const choices = document.createElement("div");
+    choices.className = "choices";
+    ["TRUE", "FALSE"].forEach((label) => {
+      const value = label === "TRUE";
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "choice";
+      b.textContent = label;
+      b.disabled = submitted;
+      b.setAttribute("aria-pressed", String(answers[i].choice === value));
+      b.addEventListener("click", () => {
+        if (submitted) return;
+        answers[i].choice = value;
+        render();
+      });
+      choices.appendChild(b);
+    });
+    card.appendChild(choices);
+
+    const l1 = document.createElement("label");
+    l1.textContent = "Explain why";
+    const ta = document.createElement("textarea");
+    ta.value = answers[i].explain;
+    ta.disabled = submitted;
+    ta.addEventListener("input", () => { answers[i].explain = ta.value; });
+    l1.appendChild(ta);
+    card.appendChild(l1);
+
+    const l2 = document.createElement("label");
+    l2.textContent = "Slide number(s) where your answer can be found";
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.value = answers[i].slides;
+    inp.disabled = submitted;
+    inp.addEventListener("input", () => { answers[i].slides = inp.value; });
+    l2.appendChild(inp);
+    card.appendChild(l2);
+
+    quizEl.appendChild(card);
+  });
+
+  nameEl.disabled = submitted;
+  submitBtn.disabled = submitted;
+  submitBtn.hidden = submitted;
+  checkBtn.hidden = !submitted;
+}
+
+async function submit() {
+  if (submitted) return;
+  const name = nameEl.value.trim();
+  if (!name) { setStatus("Please enter your name.", true); return; }
+  const id = nameId(name);
+  if (!id) { setStatus("Please use letters or numbers in your name.", true); return; }
+  if (answers.some((a) => a.choice === null)) { setStatus("Please answer all 10 questions before submitting.", true); return; }
+
+  submitBtn.disabled = true;
+  setStatus("Submitting…");
+  try {
+    await setDoc(doc(db, "submissions", id), {
+      name: name,
+      submittedAt: new Date().toISOString(),
+      answers: answers.map((a) => ({ choice: a.choice ? "TRUE" : "FALSE", explain: a.explain, slides: a.slides }))
+    });
+    myId = id;
+    myName = name;
+    writeDone({ id: id, name: name });
+    submitted = true;
+    render();
+    setStatus("Your answers have been submitted. Press “Check my score” later to see your score.");
+  } catch (e) {
+    submitBtn.disabled = false;
+    if (e && e.code === "permission-denied") {
+      setStatus("A submission with this name already exists, so this name cannot take the quiz again.", true);
+    } else {
+      setStatus("Your answers could not be submitted. Please try again.", true);
+    }
+  }
+}
+
+async function checkScore() {
+  const done = myId ? { id: myId } : readDone();
+  if (!done) return;
+  scoreEl.hidden = true;
+  try {
+    const snap = await getDoc(doc(db, "results", done.id));
+    if (snap.exists() && typeof snap.data().score === "number") {
+      scoreEl.textContent = "Your score: " + snap.data().score + " of " + QUESTIONS.length;
+      scoreEl.hidden = false;
+      setStatus("");
+    } else {
+      setStatus("Your answers have been submitted. Your score is not ready yet. Check again later.");
+    }
+  } catch (e) {
+    setStatus("Could not load your score. Please try again.", true);
+  }
+}
+
+// ---- teacher sign-in (students never sign in) ----
+$("tsignin").addEventListener("click", () => {
+  signInWithPopup(auth, provider).catch(() => { /* cancelled */ });
+});
+
+onAuthStateChanged(auth, (u) => {
+  isTeacher = !!u && u.emailVerified && u.email === TEACHER_EMAIL;
+  $("teacher").hidden = !isTeacher;
+  $("tsignin").hidden = isTeacher;
+});
+
+// ---- teacher: save the answer key (typed at runtime, never stored in this file) ----
+$("savekey").addEventListener("click", async () => {
+  const ks = $("keystatus");
+  let items;
+  try { items = JSON.parse($("keytext").value); } catch (e) { ks.textContent = "The text is not valid JSON."; ks.className = "status bad"; return; }
+  const ok = Array.isArray(items) && items.length === QUESTIONS.length &&
+    items.every((x) => x && typeof x.correct === "boolean" && typeof x.ans === "string");
+  if (!ok) { ks.textContent = "The key must have 10 items, each with \"correct\" (true or false) and \"ans\"."; ks.className = "status bad"; return; }
+  try {
+    await setDoc(doc(db, "answer_key", "key"), { items: items });
+    ks.textContent = "Answer key saved.";
+    ks.className = "status";
+  } catch (e) {
+    ks.textContent = "Could not save the key. Make sure you are signed in as the teacher.";
+    ks.className = "status bad";
+  }
+});
+
+// ---- teacher: grade submissions, publish scores, and show results ----
+$("grade").addEventListener("click", loadTeacher);
+
+async function loadTeacher() {
+  const list = $("teacher-list");
+  list.innerHTML = "";
+  if (!isTeacher) { list.textContent = "Sign in as the teacher first."; return; }
+  try {
+    const keySnap = await getDoc(doc(db, "answer_key", "key"));
+    if (!keySnap.exists()) { list.textContent = "Save the answer key first."; return; }
+    const items = keySnap.data().items;
+    const subs = await getDocs(collection(db, "submissions"));
+    if (subs.empty) { list.textContent = "No submissions yet."; return; }
+
+    for (const docSnap of subs.docs) {
+      const d = docSnap.data();
+      const picks = d.answers || [];
+      let score = 0;
+      items.forEach((item, i) => {
+        const a = picks[i] || {};
+        if ((a.choice === "TRUE") === item.correct) score++;
+      });
+      try {
+        await setDoc(doc(db, "results", docSnap.id), { name: d.name || "", score: score, scoredAt: new Date().toISOString() });
+      } catch (e) { /* the list below still shows the score */ }
+
+      const det = document.createElement("details");
+      det.className = "trow";
+      const sum = document.createElement("summary");
+      sum.textContent = (d.name || "Unnamed") + " · Score: " + score + " of " + items.length;
+      det.appendChild(sum);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = "Submitted: " + (d.submittedAt || "unknown");
+      det.appendChild(meta);
+
+      items.forEach((item, i) => {
+        const a = picks[i] || {};
+        const right = (a.choice === "TRUE") === item.correct;
+        const line = document.createElement("div");
+        line.className = "qline";
+        const mark = document.createElement("span");
+        mark.className = right ? "ok" : "bad";
+        mark.textContent = (right ? "Correct" : "Incorrect") + " · ";
+        line.appendChild(mark);
+        line.appendChild(document.createTextNode("Q" + (i + 1) + ": answered " + (a.choice || "nothing") + "; key says " + (item.correct ? "TRUE" : "FALSE") + "."));
+        const ex = document.createElement("span");
+        ex.className = "muted";
+        ex.textContent = "Explanation given: " + (a.explain || "(none)") + " | Slide(s) given: " + (a.slides || "(none)") + " | Model: " + item.ans;
+        line.appendChild(ex);
+        det.appendChild(line);
+      });
+      list.appendChild(det);
+    }
+  } catch (e) {
+    list.textContent = "Could not load submissions. Check that you are signed in as the teacher.";
+  }
+}
+
+// On load: if this browser already submitted, lock the quiz and show the check button.
+const done = readDone();
+if (done) {
+  myId = done.id;
+  myName = done.name || "";
+  nameEl.value = myName;
+  submitted = true;
+  setStatus("You have already submitted the quiz from this browser. Press “Check my score” to see your score.");
+}
+
+submitBtn.addEventListener("click", submit);
+checkBtn.addEventListener("click", checkScore);
+render();
+</script>
+</body>
+</html>
